@@ -135,7 +135,7 @@ body.prelaunch .checkered {
 
 .stage {
   position: relative;
-  min-height: 700px;
+  min-height: 640px;
   border-radius: 14px;
   padding: 32px;
   background: linear-gradient(145deg, rgba(36, 242, 255, 0.09), rgba(255, 60, 127, 0.05)), var(--panel);
@@ -179,7 +179,7 @@ body.prelaunch .checkered {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 620px;
+  min-height: 560px;
 }
 
 .stage-content .lead {
