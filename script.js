@@ -3,6 +3,8 @@ const stageContent = document.getElementById('stage-content');
 const buttons = document.querySelectorAll('.arcade');
 const secretFooter = document.getElementById('secret-footer');
 const secretButton = document.getElementById('secret-button');
+const winOverlay = document.getElementById('win-overlay');
+const confettiContainer = document.getElementById('confetti');
 
 const clickedActions = new Set();
 let mediaPlaying = false;
@@ -51,7 +53,7 @@ function randomFrom(arr) {
 function markClicked(action) {
   clickedActions.add(action);
   if (clickedActions.size === 5) {
-    secretFooter.style.display = 'block';
+    secretFooter.classList.add('show');
   }
 }
 
@@ -137,11 +139,6 @@ function createMediaElement(type, src) {
     el.alt = 'Resting';
   }
   el.className = 'media-item';
-  el.style.width = '100%';
-  el.style.borderRadius = '10px';
-  el.style.display = 'block';
-  el.style.objectFit = 'cover';
-  el.style.maxHeight = '320px';
   return el;
 }
 
@@ -159,6 +156,25 @@ function overlayTemplate(caption) {
 
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function launchConfetti() {
+  if (!confettiContainer) return;
+  confettiContainer.innerHTML = '';
+  const colors = ['#24f2ff', '#ff3c7f', '#ffc300', '#7bffb5', '#ffffff'];
+  const pieces = 60;
+  for (let i = 0; i < pieces; i++) {
+    const piece = document.createElement('span');
+    piece.className = 'confetti-piece';
+    piece.style.background = colors[i % colors.length];
+    piece.style.left = `${Math.random() * 100}%`;
+    piece.style.animationDelay = `${Math.random() * 0.8}s`;
+    piece.style.transform = `translateY(-120px) rotateZ(${Math.random() * 180}deg)`;
+    piece.style.width = `${8 + Math.random() * 10}px`;
+    piece.style.height = `${14 + Math.random() * 18}px`;
+    confettiContainer.appendChild(piece);
+  }
+  setTimeout(() => { confettiContainer.innerHTML = ''; }, 2400);
 }
 
 async function showMediaSequence() {
@@ -205,10 +221,14 @@ async function showMediaSequence() {
 }
 
 function revealSecretWin() {
+  document.body.classList.add('blurred');
+  secretFooter.classList.remove('show');
+  winOverlay.classList.add('show');
   setStageContent(`
     <p class="lead">Happy Birthday.</p>
     <p>I’m glad you exist.</p>
   `, 'fade');
+  launchConfetti();
 }
 
 buttons.forEach(btn => {
