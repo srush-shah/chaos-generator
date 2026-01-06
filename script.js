@@ -5,6 +5,10 @@ const secretFooter = document.getElementById('secret-footer');
 const secretButton = document.getElementById('secret-button');
 const winOverlay = document.getElementById('win-overlay');
 const confettiContainer = document.getElementById('confetti');
+const launchOverlay = document.getElementById('launch-overlay');
+const launchCount = document.getElementById('launch-count');
+const launchGo = document.getElementById('launch-go');
+const launchCar = document.getElementById('launch-car');
 
 const completedActions = new Set();
 let mediaPlaying = false;
@@ -15,6 +19,7 @@ let musicInterval;
 let musicStarted = false;
 let currentTrack = 'game';
 let happyTimeout;
+let confettiInterval;
 
 const roastLines = [
   'You help everyone except yourself.',
@@ -211,6 +216,7 @@ function resumeGameTrack() {
 }
 
 async function handleUnnecessary() {
+  return new Promise(resolve => {
   const progressSpan = '<div class="progress-bar"><span></span></div>';
   const logs = [
     'initializing birthday_protocol_v1',
@@ -253,10 +259,11 @@ async function handleUnnecessary() {
           </div>
         `, 'fade');
         startClapMoment();
-        setTimeout(() => markComplete('unnecessary'), 2400);
+        setTimeout(() => resolve('unnecessary'), 2400);
       }, 400);
     }
   }, 400);
+  });
 }
 
 async function handleEmergency() {
@@ -264,7 +271,7 @@ async function handleEmergency() {
     <p class="lead">WARNING: You are about to be mildly misjudged.</p>
     <p>RACE CONTROL: ${randomFrom(roastLines)}</p>
   `, 'fade');
-  markComplete('emergency');
+  return 'emergency';
 }
 
 async function handleSideQuest() {
@@ -277,7 +284,7 @@ async function handleSideQuest() {
       <p class="muted">Quest already completed.<br>You do this anyway.</p>
     </div>
   `);
-  markComplete('sidequest');
+  return 'sidequest';
 }
 
 async function handleDoNot() {
@@ -286,7 +293,7 @@ async function handleDoNot() {
       ${randomFrom(dialogueLines)} <span class="cursor"></span>
     </div>
   `);
-  markComplete('donot');
+  return 'donot';
 }
 
 function createMediaElement(type, src) {
@@ -324,23 +331,28 @@ function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function launchConfetti() {
+function startConfettiLoop() {
   if (!confettiContainer) return;
   confettiContainer.innerHTML = '';
   const colors = ['#24f2ff', '#ff3c7f', '#ffc300', '#7bffb5', '#ffffff'];
-  const pieces = 60;
-  for (let i = 0; i < pieces; i++) {
-    const piece = document.createElement('span');
-    piece.className = 'confetti-piece';
-    piece.style.background = colors[i % colors.length];
-    piece.style.left = `${Math.random() * 100}%`;
-    piece.style.animationDelay = `${Math.random() * 0.8}s`;
-    piece.style.transform = `translateY(-120px) rotateZ(${Math.random() * 180}deg)`;
-    piece.style.width = `${8 + Math.random() * 10}px`;
-    piece.style.height = `${14 + Math.random() * 18}px`;
-    confettiContainer.appendChild(piece);
-  }
-  setTimeout(() => { confettiContainer.innerHTML = ''; }, 2400);
+  const spawn = () => {
+    const pieces = 30;
+    for (let i = 0; i < pieces; i++) {
+      const piece = document.createElement('span');
+      piece.className = 'confetti-piece';
+      piece.style.background = colors[i % colors.length];
+      piece.style.left = `${Math.random() * 100}%`;
+      piece.style.animationDelay = `${Math.random() * 0.8}s`;
+      piece.style.transform = `translateY(-120px) rotateZ(${Math.random() * 180}deg)`;
+      piece.style.width = `${8 + Math.random() * 10}px`;
+      piece.style.height = `${14 + Math.random() * 18}px`;
+      confettiContainer.appendChild(piece);
+    }
+    setTimeout(() => { confettiContainer.innerHTML = ''; }, 2600);
+  };
+  spawn();
+  clearInterval(confettiInterval);
+  confettiInterval = setInterval(spawn, 1400);
 }
 
 async function showMediaSequence() {
@@ -383,7 +395,7 @@ async function showMediaSequence() {
   setStageContent('<p class="lead">DIAGNOSIS: functioning. Mostly.</p>', 'fade');
   button.disabled = false;
   mediaPlaying = false;
-  markComplete('broken');
+  return 'broken';
 }
 
 function revealSecretWin() {
@@ -397,11 +409,11 @@ function revealSecretWin() {
     <p class="lead">Happy Birthday.</p>
     <p>I’m glad you exist.</p>
   `, 'fade');
-  launchConfetti();
+  startConfettiLoop();
 }
 
 buttons.forEach(btn => {
-  btn.addEventListener('click', () => {
+  btn.addEventListener('click', async () => {
     ensureAudio();
     playClick();
     const action = btn.dataset.action;
@@ -409,23 +421,25 @@ buttons.forEach(btn => {
       showBusy();
       return;
     }
+    let key;
     switch (action) {
       case 'unnecessary':
-        handleUnnecessary();
+        key = await handleUnnecessary();
         break;
       case 'emergency':
-        handleEmergency();
+        key = await handleEmergency();
         break;
       case 'sidequest':
-        handleSideQuest();
+        key = await handleSideQuest();
         break;
       case 'donot':
-        handleDoNot();
+        key = await handleDoNot();
         break;
       case 'broken':
-        showMediaSequence();
+        key = await showMediaSequence();
         break;
     }
+    if (key) markComplete(key);
   });
 });
 
@@ -454,3 +468,55 @@ document.addEventListener('visibilitychange', () => {
     tag.preload = 'auto';
   }
 });
+
+function startLaunch() {
+  if (!launchOverlay) return;
+  document.body.classList.add('prelaunch');
+  launchGo.classList.remove('show');
+  launchCar.classList.remove('run');
+
+  const targetIST = Date.UTC(2026, 0, 6, 12, 15, 0); // 5:45 PM IST is 12:15 UTC
+
+  const formatRemaining = (ms) => {
+    const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    const pad = (n) => n.toString().padStart(2, '0');
+    return `${days}d ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+  };
+
+  let ticker;
+  let launched = false;
+
+  const fireLaunch = () => {
+    if (launched) return;
+    launched = true;
+    clearInterval(ticker);
+    launchCount.textContent = '';
+    launchGo.classList.add('show');
+    launchCar.classList.add('run');
+  };
+
+  const updateCountdown = () => {
+    const now = Date.now();
+    const remaining = targetIST - now;
+    if (remaining <= 0) {
+      fireLaunch();
+    } else {
+      launchCount.textContent = formatRemaining(remaining);
+    }
+  };
+
+  updateCountdown();
+  ticker = setInterval(updateCountdown, 1000);
+
+  launchCar.addEventListener('animationend', () => {
+    launchOverlay.classList.add('hide');
+    document.body.classList.remove('prelaunch');
+    setTimeout(() => launchOverlay.remove(), 400);
+  }, { once: true });
+}
+
+startLaunch();

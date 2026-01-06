@@ -29,6 +29,12 @@ body {
   position: relative;
 }
 
+body.prelaunch .page-shell,
+body.prelaunch .checkered {
+  filter: blur(8px) brightness(0.85);
+  pointer-events: none;
+}
+
 .page-shell {
   transition: filter 200ms ease, transform 200ms ease;
 }
@@ -259,6 +265,150 @@ body {
   background: radial-gradient(circle at 50% 30%, rgba(36, 242, 255, 0.06), transparent 45%),
     rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(4px);
+}
+
+.launch-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 80;
+  background: radial-gradient(circle at 50% 30%, rgba(36, 242, 255, 0.08), transparent 40%),
+    rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+  transition: opacity 300ms ease;
+}
+
+.launch-overlay.hide {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.launch-inner {
+  text-align: center;
+  max-width: 640px;
+  width: 92vw;
+  padding: 24px 32px 32px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 18px;
+  background: linear-gradient(140deg, rgba(36, 242, 255, 0.12), rgba(255, 60, 127, 0.12)), #0c101c;
+  box-shadow: 0 24px 54px rgba(0, 0, 0, 0.5), inset 0 0 24px rgba(36, 242, 255, 0.12);
+}
+
+.launch-sub {
+  margin: 0 0 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.launch-count {
+  font-size: clamp(42px, 6.5vw, 82px);
+  font-weight: 900;
+  text-shadow: 0 0 22px rgba(36, 242, 255, 0.55);
+  font-variant-numeric: tabular-nums;
+}
+
+.launch-go {
+  font-size: clamp(52px, 8vw, 82px);
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin: 12px 0 20px;
+  display: none;
+  text-shadow: 0 0 32px rgba(255, 195, 0, 0.5);
+}
+
+.launch-go.show {
+  display: block;
+}
+
+.launch-track {
+  position: relative;
+  height: 140px;
+  margin-top: 12px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(0, 0, 0, 0.6));
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.4);
+}
+
+.launch-track::before,
+.launch-track::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 8px;
+  background-image: repeating-linear-gradient(90deg, #fff 0 30px, #0b0b0b 30px 60px);
+  opacity: 0.55;
+}
+
+.launch-track::before { top: 18px; }
+.launch-track::after { bottom: 18px; }
+
+.launch-car {
+  position: absolute;
+  left: -180px;
+  top: 28px;
+  width: 180px;
+  height: 84px;
+  display: block;
+}
+
+.launch-car .car-top,
+.launch-car .car-body,
+.launch-car .car-tail,
+.launch-car .car-wheel {
+  position: absolute;
+  display: block;
+}
+
+.launch-car .car-top {
+  width: 120px;
+  height: 30px;
+  background: linear-gradient(120deg, #24f2ff, #0ad1ff);
+  border-radius: 12px 12px 6px 6px;
+  top: -6px;
+  left: 30px;
+  box-shadow: 0 0 14px rgba(36, 242, 255, 0.7);
+}
+
+.launch-car .car-body {
+  width: 180px;
+  height: 40px;
+  background: linear-gradient(90deg, #ff3c7f, #ff6f3c);
+  border-radius: 12px;
+  top: 20px;
+  left: 0;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+}
+
+.launch-car .car-tail {
+  width: 46px;
+  height: 26px;
+  background: linear-gradient(160deg, #111, #555);
+  border-radius: 0 10px 10px 0;
+  top: 8px;
+  left: -12px;
+}
+
+.launch-car .car-wheel {
+  width: 34px;
+  height: 34px;
+  background: radial-gradient(circle at 50% 50%, #ccc, #222);
+  border-radius: 50%;
+  top: 48px;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.6);
+}
+
+.launch-car .car-wheel.front { left: 24px; }
+.launch-car .car-wheel.back { right: 14px; }
+
+.launch-car.run {
+  animation: raceAcross 2200ms ease-in-out forwards;
 }
 
 .secret-overlay.show {
@@ -622,6 +772,12 @@ body {
   0% { transform: translateY(-120px) rotateZ(0deg) rotateX(0deg); opacity: 1; }
   80% { opacity: 1; }
   100% { transform: translateY(120vh) rotateZ(220deg) rotateX(160deg); opacity: 0; }
+}
+
+@keyframes raceAcross {
+  0% { transform: translateX(0) scale(0.96); filter: drop-shadow(0 8px 16px rgba(0,0,0,0.45)); }
+  50% { transform: translateX(70vw) scale(1); }
+  100% { transform: translateX(110vw) scale(1); opacity: 1; }
 }
 
 @media (max-width: 980px) {
