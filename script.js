@@ -6,8 +6,13 @@ const secretButton = document.getElementById('secret-button');
 const winOverlay = document.getElementById('win-overlay');
 const confettiContainer = document.getElementById('confetti');
 
-const clickedActions = new Set();
+const completedActions = new Set();
 let mediaPlaying = false;
+let audioCtx;
+let musicGain;
+let sfxGain;
+let musicInterval;
+let musicStarted = false;
 
 const roastLines = [
   'You help everyone except yourself.',
@@ -50,15 +55,90 @@ function randomFrom(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-function markClicked(action) {
-  clickedActions.add(action);
-  if (clickedActions.size === 5) {
+function markComplete(action) {
+  completedActions.add(action);
+  if (completedActions.size === 5) {
     secretFooter.classList.add('show');
   }
 }
 
+function ensureAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    musicGain = audioCtx.createGain();
+    musicGain.gain.value = 0.14;
+    sfxGain = audioCtx.createGain();
+    sfxGain.gain.value = 0.28;
+    musicGain.connect(audioCtx.destination);
+    sfxGain.connect(audioCtx.destination);
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  if (!musicStarted) {
+    startMusicLoop();
+    musicStarted = true;
+  }
+}
+
+function playClick() {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'triangle';
+  osc.frequency.value = 560;
+  gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.12);
+  osc.connect(gain).connect(sfxGain);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.14);
+}
+
+function playClap() {
+  if (!audioCtx) return;
+  const duration = 0.35;
+  const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * duration, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < data.length; i++) {
+    data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+  }
+  const noise = audioCtx.createBufferSource();
+  noise.buffer = buffer;
+  const bandpass = audioCtx.createBiquadFilter();
+  bandpass.type = 'bandpass';
+  bandpass.frequency.value = 1800;
+  const gain = audioCtx.createGain();
+  gain.gain.setValueAtTime(0.22, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+  noise.connect(bandpass).connect(gain).connect(sfxGain);
+  noise.start();
+  noise.stop(audioCtx.currentTime + duration);
+}
+
+function playMusicNote(freq) {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'square';
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0.0001, audioCtx.currentTime);
+  gain.gain.linearRampToValueAtTime(0.18, audioCtx.currentTime + 0.05);
+  gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.35);
+  osc.connect(gain).connect(musicGain);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.4);
+}
+
+function startMusicLoop() {
+  const melody = [392, 440, 523.25, 587.33, 523.25, 440, 392, 330];
+  let step = 0;
+  musicInterval = setInterval(() => {
+    const freq = melody[step % melody.length];
+    playMusicNote(freq);
+    step++;
+  }, 380);
+}
+
 async function handleUnnecessary() {
-  markClicked('unnecessary');
+  const progressSpan = '<div class="progress-bar"><span></span></div>';
   const logs = [
     'initializing birthday_protocol_v1',
     'syncing ego_resilience',
@@ -68,7 +148,7 @@ async function handleUnnecessary() {
   ];
 
   setStageContent(`
-    <div class="progress-bar"><span></span></div>
+    ${progressSpan}
     <div class="log-lines" id="log-lines"></div>
   `);
 
@@ -87,22 +167,34 @@ async function handleUnnecessary() {
           <p class="lead">RESULT: You deserve cake.</p>
           <p>STATUS: confirmed.</p>
           <span class="approved-stamp">APPROVED</span>
+          <div class="cake-wrap">
+            <div class="cake">
+              <div class="layer bottom"></div>
+              <div class="layer middle"></div>
+              <div class="layer top">
+                <div class="icing"></div>
+                <div class="candle"></div>
+                <div class="flame"></div>
+              </div>
+            </div>
+          </div>
         `, 'fade');
+        playClap();
+        markComplete('unnecessary');
       }, 400);
     }
   }, 400);
 }
 
 async function handleEmergency() {
-  markClicked('emergency');
   setStageContent(`
     <p class="lead">WARNING: You are about to be mildly misjudged.</p>
     <p>RACE CONTROL: ${randomFrom(roastLines)}</p>
   `, 'fade');
+  markComplete('emergency');
 }
 
 async function handleSideQuest() {
-  markClicked('sidequest');
   setStageContent(`
     <div class="quest-card fade">
       <span class="quest-badge">NEW QUEST</span>
@@ -112,15 +204,16 @@ async function handleSideQuest() {
       <p class="muted">Quest already completed.<br>You do this anyway.</p>
     </div>
   `);
+  markComplete('sidequest');
 }
 
 async function handleDoNot() {
-  markClicked('donot');
   setStageContent(`
     <div class="dialogue fade">
       ${randomFrom(dialogueLines)} <span class="cursor"></span>
     </div>
   `);
+  markComplete('donot');
 }
 
 function createMediaElement(type, src) {
@@ -201,7 +294,7 @@ async function showMediaSequence() {
     wrapper.appendChild(mediaEl);
     wrapper.insertAdjacentHTML('beforeend', overlayTemplate(caption));
 
-    setStageContent('');
+    setStageContent('', 'wide-media');
     stageContent.appendChild(wrapper);
 
     if (item.type === 'video') {
@@ -217,7 +310,7 @@ async function showMediaSequence() {
   setStageContent('<p class="lead">DIAGNOSIS: functioning. Mostly.</p>', 'fade');
   button.disabled = false;
   mediaPlaying = false;
-  markClicked('broken');
+  markComplete('broken');
 }
 
 function revealSecretWin() {
@@ -233,6 +326,8 @@ function revealSecretWin() {
 
 buttons.forEach(btn => {
   btn.addEventListener('click', () => {
+    ensureAudio();
+    playClick();
     const action = btn.dataset.action;
     if (mediaPlaying && action !== 'broken') {
       showBusy();
@@ -259,6 +354,16 @@ buttons.forEach(btn => {
 });
 
 secretButton.addEventListener('click', revealSecretWin);
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && musicInterval) {
+    clearInterval(musicInterval);
+    musicStarted = false;
+  } else if (!document.hidden && audioCtx && !musicStarted) {
+    startMusicLoop();
+    musicStarted = true;
+  }
+});
 
 // preload media for smoother playback
 ['assets/video1.mp4', 'assets/video2.mp4', 'assets/sleeping.jpg'].forEach(src => {
