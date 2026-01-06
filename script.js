@@ -21,25 +21,91 @@ let currentTrack = 'game';
 let happyTimeout;
 let confettiInterval;
 
-const roastLines = [
-  'You help everyone except yourself.',
-  'You act unbothered with impressive consistency.',
-  'You take responsibility for things you didn’t break.',
-  'You’re calm until you’re not. Then you recover quickly.',
-  'You show up even when rest would be smarter.'
+const emergencyPenalties = [
+  'RACE CONTROL: 5s penalty for pretending you’re chill.',
+  'RACE CONTROL: Unsafe levels of fake calm detected.',
+  'RACE CONTROL: You said “it’s fine” like you meant it.',
+  'RACE CONTROL: Excessive competence. Others now depend on you.',
+  'RACE CONTROL: Helping again. Take a hydration lap.',
+  'RACE CONTROL: Dramatic reaction loading…',
+  'RACE CONTROL: Emotional buffering in progress.',
+  'RACE CONTROL: Grid slot revoked for suspicious composure.',
+  'RACE CONTROL: Debrief scheduled for that sigh.',
+  'RACE CONTROL: Five-place drop for over-functioning.'
 ];
 
-const dialogueLines = [
-  'Relax. This is not flirting.',
-  'This interaction meant nothing. Remember it forever.',
-  'I would tease you more, but you’d overthink it.',
-  'You’re smiling. That was not the goal.'
+const questTitles = [
+  'SIDE QUEST UNLOCKED',
+  'BONUS MISSION',
+  'NPC REQUEST',
+  'UNNECESSARY HEROISM DETECTED'
 ];
 
 const questScenarios = [
-  'Friend stressed at 2am',
-  'Someone lost in a new city',
-  'Person pretending they’re fine'
+  'Carry someone’s entire life update at 2 AM.',
+  'Fix a problem you didn’t cause.',
+  'Explain something to someone who will ignore it.',
+  'Send one meme that stabilizes the situation.',
+  'Pretend you’re studying. Argue instead.',
+  'Give advice so good it becomes your fault.'
+];
+
+const questRewards = [
+  'Reward: +50 Aura',
+  'Reward: Legendary Meme Drop',
+  'Reward: +1 Emotional Damage Resistance (temporary)',
+  'Reward: +5 Rizz (accidental)',
+  'Reward: Respect (silent)'
+];
+
+const questStatuses = [
+  'Status: Completed before accepting.',
+  'Status: Autocompleted.',
+  'Status: Somehow this is your job now.'
+];
+
+const flirtOpeners = [
+  'Look at me and don’t look away.',
+  'Hold position. This is now a briefing.',
+  'Eyes on me, no pit exits.',
+  'Stop pretending we’re not doing this.',
+  'Focus. I’m about to mean this too much.'
+];
+
+const flirtCommitments = [
+  'I pick you like a championship strategy.',
+  'You’re the only lap I’m willing to rerun.',
+  'I’d ghost the grid if you asked.',
+  'You’re the plan, the backup plan, and the contingency.',
+  'I would sign the contract without reading it.'
+];
+
+const flirtReceipts = [
+  'Proof? I’d learn your chaos like telemetry.',
+  'I’d track every micro-expression like race data.',
+  'I’d reroute every plan to align with you.',
+  'I’d defend your bad ideas like podium points.',
+  'I’d memorize your timing like a start light.'
+];
+
+const flirtDenials = [
+  'None of this counts. You didn’t hear it.',
+  'Delete the recording. This never happened.',
+  'We will deny this in the debrief.',
+  'Cancel the telemetry. I wasn’t here.',
+  'Close the pit wall chat. You imagined it.'
+];
+
+const flirtMeterLabels = ['concerning', 'unstable', 'irreversible'];
+
+const roastLines = [
+  'You budget emotions like fuel and still overheat.',
+  'You keep the brakes on and then wonder why everything smokes.',
+  'Your “it’s fine” sounds like a red flag waived politely.',
+  'You rehearse detachment and then sprint toward the chaos.',
+  'You stay composed until someone needs saving. Then you overclock.',
+  'You treat intensity like a hobby and call it balance.',
+  'You joke like you’re not serious and you’re very serious.'
 ];
 
 const captions = [
@@ -217,82 +283,181 @@ function resumeGameTrack() {
 
 async function handleUnnecessary() {
   return new Promise(resolve => {
-  const progressSpan = '<div class="progress-bar"><span></span></div>';
-  const logs = [
-    'initializing birthday_protocol_v1',
-    'syncing ego_resilience',
-    'loading premium_vibes',
-    'calibrating chaos',
-    'ready'
-  ];
+    const progressSpan = '<div class="progress-bar"><span></span></div>';
+    const logs = [
+      'initializing birthday_protocol_v1',
+      'syncing ego_resilience',
+      'loading premium_vibes',
+      'calibrating chaos',
+      'ready'
+    ];
 
-  setStageContent(`
-    ${progressSpan}
-    <div class="log-lines" id="log-lines"></div>
-  `);
+    setStageContent(`
+      ${progressSpan}
+      <div class="log-lines" id="log-lines"></div>
+    `);
 
-  const logContainer = document.getElementById('log-lines');
-  let index = 0;
+    const logContainer = document.getElementById('log-lines');
+    let index = 0;
 
-  const interval = setInterval(() => {
-    if (index < logs.length) {
-      logContainer.innerHTML += `> ${logs[index]}<br>`;
-      index++;
-      logContainer.scrollTop = logContainer.scrollHeight;
-    } else {
-      clearInterval(interval);
-      setTimeout(() => {
-        setStageContent(`
-          <p class="lead">RESULT: You deserve cake.</p>
-          <p>STATUS: confirmed.</p>
-          <span class="approved-stamp">APPROVED</span>
-          <div class="cake-wrap">
-            <div class="cake">
-              <div class="layer bottom"></div>
-              <div class="layer middle"></div>
-              <div class="layer top">
-                <div class="icing"></div>
-                <div class="candle"></div>
-                <div class="flame"></div>
+    const interval = setInterval(() => {
+      if (index < logs.length) {
+        logContainer.innerHTML += `> ${logs[index]}<br>`;
+        index++;
+        logContainer.scrollTop = logContainer.scrollHeight;
+      } else {
+        clearInterval(interval);
+        setTimeout(() => {
+          setStageContent(`
+            <p class="lead">RESULT: You deserve cake.</p>
+            <p>STATUS: confirmed.</p>
+            <span class="approved-stamp">APPROVED</span>
+            <div class="cake-wrap">
+              <div class="cake">
+                <div class="layer bottom"></div>
+                <div class="layer middle"></div>
+                <div class="layer top">
+                  <div class="icing"></div>
+                  <div class="candle"></div>
+                  <div class="flame"></div>
+                </div>
               </div>
             </div>
-          </div>
-        `, 'fade');
-        startClapMoment();
-        setTimeout(() => resolve('unnecessary'), 2400);
-      }, 400);
-    }
-  }, 400);
+          `, 'fade');
+          startClapMoment();
+          setTimeout(() => resolve('unnecessary'), 2400);
+        }, 400);
+      }
+    }, 400);
   });
 }
 
 async function handleEmergency() {
   setStageContent(`
-    <p class="lead">WARNING: You are about to be mildly misjudged.</p>
-    <p>RACE CONTROL: ${randomFrom(roastLines)}</p>
-  `, 'fade');
+    <div class="race-alert fade">
+      <p class="lead">WARNING: Race Control is reviewing your behavior.</p>
+      <p class="muted">Penalty feed armed.</p>
+      <p class="alert-line">${randomFrom(emergencyPenalties)}</p>
+    </div>
+  `);
   return 'emergency';
 }
 
 async function handleSideQuest() {
+  const title = randomFrom(questTitles);
+  const scenario = randomFrom(questScenarios);
+  const reward = randomFrom(questRewards);
+  const status = randomFrom(questStatuses);
+
   setStageContent(`
     <div class="quest-card fade">
-      <span class="quest-badge">NEW QUEST</span>
-      <h3 class="quest-title">New Quest Unlocked</h3>
-      <p class="quest-subtitle">Be there without being asked</p>
-      <p style="margin-top:12px;">Scenario: ${randomFrom(questScenarios)}</p>
-      <p class="muted">Quest already completed.<br>You do this anyway.</p>
+      <span class="quest-badge">${title}</span>
+      <h3 class="quest-title">${title}</h3>
+      <p class="quest-subtitle">Scenario: ${scenario}</p>
+      <p class="quest-reward">${reward}</p>
+      <p class="quest-status">${status}</p>
     </div>
   `);
   return 'sidequest';
 }
 
-async function handleDoNot() {
+let doNotTab = 'flirt';
+
+function renderDoNotShell() {
   setStageContent(`
-    <div class="dialogue fade">
-      ${randomFrom(dialogueLines)} <span class="cursor"></span>
+    <div class="dialogue-shell fade">
+      <div class="tab-row">
+        <button class="tab ${doNotTab === 'flirt' ? 'active' : ''}" data-tab="flirt">FLIRT</button>
+        <button class="tab ${doNotTab === 'roast' ? 'active' : ''}" data-tab="roast">ROAST</button>
+        <div class="hud-chips">
+          <span>EXIT: REMOVED</span>
+          <span>RISK: HIGH</span>
+          <span>MODE: DIALOGUE</span>
+        </div>
+      </div>
+      <div class="dialogue-body" id="do-not-body"></div>
     </div>
   `);
+
+  const tabs = stageContent.querySelectorAll('.tab');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const newTab = tab.dataset.tab;
+      if (newTab === doNotTab) return;
+      doNotTab = newTab;
+      renderDoNotShell();
+      runDoNotCycle();
+    });
+  });
+}
+
+function runFlirtCycle() {
+  const body = document.getElementById('do-not-body');
+  if (!body) return;
+  body.innerHTML = '';
+
+  const meterVal = Math.floor(Math.random() * 30) + 70;
+  const meterLabel = randomFrom(flirtMeterLabels);
+  const lines = [
+    randomFrom(flirtOpeners),
+    randomFrom(flirtCommitments),
+    randomFrom(flirtReceipts),
+    randomFrom(flirtDenials)
+  ];
+
+  const meter = document.createElement('div');
+  meter.className = 'commitment-meter';
+  meter.innerHTML = `
+    <div class="meter-bar"><span style="width:${meterVal}%"></span></div>
+    <div class="meter-label">Commitment: ${meterVal}% — ${meterLabel}</div>
+  `;
+
+  const beatWrap = document.createElement('div');
+  beatWrap.className = 'beat-wrap';
+
+  lines.forEach((line, idx) => {
+    const p = document.createElement('p');
+    p.className = 'beat-line';
+    p.textContent = line;
+    beatWrap.appendChild(p);
+    setTimeout(() => p.classList.add('show'), idx * 260 + 80);
+  });
+
+  body.appendChild(meter);
+  body.appendChild(beatWrap);
+
+  const hud = document.createElement('div');
+  hud.className = 'mini-hud';
+  hud.innerHTML = '<span>COMMITMENT METER</span><span>EXIT: LOCKED</span><span>RISK: HIGH</span>';
+  body.appendChild(hud);
+}
+
+function runRoastCycle() {
+  const body = document.getElementById('do-not-body');
+  if (!body) return;
+  body.innerHTML = '';
+
+  const line = randomFrom(roastLines);
+  body.innerHTML = `
+    <div class="roast-block">
+      <div class="roast-chip">MODE: ROAST</div>
+      <p class="beat-line show">${line}</p>
+      <div class="mini-hud"><span>SHIELDS: LOW</span><span>DEBRIEF: DISABLED</span><span>SPICE: MAX</span></div>
+    </div>
+  `;
+}
+
+function runDoNotCycle() {
+  if (doNotTab === 'flirt') {
+    runFlirtCycle();
+  } else {
+    runRoastCycle();
+  }
+}
+
+async function handleDoNot() {
+  renderDoNotShell();
+  runDoNotCycle();
   return 'donot';
 }
 
