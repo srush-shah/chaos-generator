@@ -640,7 +640,7 @@ function startLaunch() {
   launchGo.classList.remove('show');
   launchCar.classList.remove('run');
 
-  const targetIST = Date.UTC(2026, 0, 6, 12, 15, 0); // 5:45 PM IST is 12:15 UTC
+  const targetIST = Date.UTC(2026, 0, 7, 18, 30, 0); // 12:00 AM IST Jan 8 is 18:30 UTC Jan 7
 
   const formatRemaining = (ms) => {
     const totalSeconds = Math.max(0, Math.floor(ms / 1000));
