@@ -114,24 +114,24 @@ body {
 
 .stage-label {
   position: absolute;
-  top: -12px;
+  top: -18px;
   left: 16px;
   background: var(--accent-2);
   color: #0c0c0c;
-  padding: 4px 12px;
+  padding: 6px 14px;
   font-size: 12px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  border-radius: 4px 4px 12px 12px;
-  box-shadow: 0 6px 18px rgba(255, 60, 127, 0.35);
-  z-index: 6;
+  border-radius: 6px 6px 14px 14px;
+  box-shadow: 0 10px 28px rgba(255, 60, 127, 0.45);
+  z-index: 14;
 }
 
 .stage {
   position: relative;
-  min-height: 560px;
+  min-height: 640px;
   border-radius: 14px;
-  padding: 28px;
+  padding: 32px;
   background: linear-gradient(145deg, rgba(36, 242, 255, 0.09), rgba(255, 60, 127, 0.05)), var(--panel);
   border: 2px solid rgba(36, 242, 255, 0.35);
   box-shadow: 0 18px 60px rgba(0, 0, 0, 0.35), inset 0 0 25px rgba(36, 242, 255, 0.18);
@@ -173,6 +173,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 560px;
 }
 
 .stage-content .lead {
@@ -342,7 +343,7 @@ body {
   border-radius: 12px;
   display: block;
   object-fit: cover;
-  max-height: 520px;
+  max-height: 600px;
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
 }
 

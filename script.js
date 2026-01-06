@@ -13,6 +13,8 @@ let musicGain;
 let sfxGain;
 let musicInterval;
 let musicStarted = false;
+let currentTrack = 'game';
+let happyTimeout;
 
 const roastLines = [
   'You help everyone except yourself.',
@@ -74,7 +76,11 @@ function ensureAudio() {
   }
   if (audioCtx.state === 'suspended') audioCtx.resume();
   if (!musicStarted) {
-    startMusicLoop();
+    if (currentTrack === 'happy') {
+      playHappySong();
+    } else {
+      resumeGameTrack();
+    }
     musicStarted = true;
   }
 }
@@ -113,6 +119,31 @@ function playClap() {
   noise.stop(audioCtx.currentTime + duration);
 }
 
+function startClapMoment(duration = 2200) {
+  if (!audioCtx) return;
+  const previousTrack = currentTrack;
+  stopMusicLoop();
+  currentTrack = 'clap';
+  musicStarted = false;
+  const fire = (remaining) => {
+    playClap();
+    if (remaining > 1) setTimeout(() => fire(remaining - 1), 260);
+  };
+  fire(7);
+  setTimeout(() => {
+    if (currentTrack !== 'clap') return;
+    if (previousTrack === 'game') {
+      resumeGameTrack();
+      musicStarted = true;
+      currentTrack = 'game';
+    } else if (previousTrack === 'happy') {
+      playHappySong();
+      musicStarted = true;
+      currentTrack = 'happy';
+    }
+  }, duration);
+}
+
 function playMusicNote(freq) {
   if (!audioCtx) return;
   const osc = audioCtx.createOscillator();
@@ -128,6 +159,7 @@ function playMusicNote(freq) {
 }
 
 function startMusicLoop() {
+  stopMusicLoop();
   const melody = [392, 440, 523.25, 587.33, 523.25, 440, 392, 330];
   let step = 0;
   musicInterval = setInterval(() => {
@@ -135,6 +167,47 @@ function startMusicLoop() {
     playMusicNote(freq);
     step++;
   }, 380);
+}
+
+function playHappySong() {
+  stopMusicLoop();
+  currentTrack = 'happy';
+  const song = [
+    { freq: 392, dur: 320 },
+    { freq: 392, dur: 320 },
+    { freq: 440, dur: 520 },
+    { freq: 392, dur: 520 },
+    { freq: 523.25, dur: 520 },
+    { freq: 494, dur: 820 },
+    { freq: 392, dur: 320 },
+    { freq: 392, dur: 320 },
+    { freq: 440, dur: 520 },
+    { freq: 392, dur: 520 },
+    { freq: 587.33, dur: 520 },
+    { freq: 523.25, dur: 920 }
+  ];
+
+  let idx = 0;
+  const loopSong = () => {
+    if (currentTrack !== 'happy') return;
+    const note = song[idx % song.length];
+    playMusicNote(note.freq);
+    idx++;
+    happyTimeout = setTimeout(loopSong, note.dur + 40);
+  };
+  loopSong();
+}
+
+function stopMusicLoop() {
+  if (musicInterval) clearInterval(musicInterval);
+  if (happyTimeout) clearTimeout(happyTimeout);
+  musicInterval = null;
+  happyTimeout = null;
+}
+
+function resumeGameTrack() {
+  currentTrack = 'game';
+  startMusicLoop();
 }
 
 async function handleUnnecessary() {
@@ -179,8 +252,8 @@ async function handleUnnecessary() {
             </div>
           </div>
         `, 'fade');
-        playClap();
-        markComplete('unnecessary');
+        startClapMoment();
+        setTimeout(() => markComplete('unnecessary'), 2400);
       }, 400);
     }
   }, 400);
@@ -317,6 +390,9 @@ function revealSecretWin() {
   document.body.classList.add('blurred');
   secretFooter.classList.remove('show');
   winOverlay.classList.add('show');
+  stopMusicLoop();
+  playHappySong();
+  musicStarted = true;
   setStageContent(`
     <p class="lead">Happy Birthday.</p>
     <p>I’m glad you exist.</p>
@@ -356,11 +432,15 @@ buttons.forEach(btn => {
 secretButton.addEventListener('click', revealSecretWin);
 
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden && musicInterval) {
-    clearInterval(musicInterval);
+  if (document.hidden) {
+    stopMusicLoop();
     musicStarted = false;
   } else if (!document.hidden && audioCtx && !musicStarted) {
-    startMusicLoop();
+    if (currentTrack === 'happy') {
+      playHappySong();
+    } else {
+      resumeGameTrack();
+    }
     musicStarted = true;
   }
 });
